@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
 import requests
 import math
 
-app = Flask(__name__,)
+app = Flask(__name__)
 
 @app.route("/")
 def index():
@@ -14,7 +14,6 @@ def get_flights():
     lon = float(request.json["lon"])
     radius = float(request.json["radius"])
     
-    # OpenSky API'sine istek gönder
     url = f"https://opensky-network.org/api/states/all?lamin={lat-1}&lomin={lon-1}&lamax={lat+1}&lomax={lon+1}"
     response = requests.get(url)
     data = response.json()
@@ -33,19 +32,29 @@ def get_flights():
                     "velocity": f"{round(float(state[9]) * 3.6, 2)} km/h" if state[9] else "N/A",
                     "true_track": f"{state[10]}°" if state[10] else "N/A",
                     "latitude": state[6],
-                    "longitude": state[5]
+                    "longitude": state[5],
+                    "progress": calculate_progress(state[6], state[5], state[10] if state[10] else 0)
                 })
     return jsonify(flight_data)
 
 def calculate_distance(lat1, lon1, lat2, lon2):
-    R = 6371  # Earth's radius in km
+    R = 6371
     dLat = math.radians(lat2 - lat1)
     dLon = math.radians(lon2 - lon1)
     a = math.sin(dLat/2) * math.sin(dLat/2) + math.cos(math.radians(lat1)) \
         * math.cos(math.radians(lat2)) * math.sin(dLon/2) * math.sin(dLon/2)
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    distance = R * c
-    return distance
+    return R * c
+
+def calculate_progress(lat, lon, heading):
+    # Bu basit hesaplama, uçuşun ilerleme yüzdesini tahmin eder
+    # Gerçek bir uygulamada, başlangıç ve bitiş noktalarını bilmek gerekir
+    distance_from_equator = abs(lat) / 90  # Ekvatordan uzaklık
+    distance_from_prime_meridian = abs(lon) / 180  # Başlangıç meridyeninden uzaklık
+    heading_factor = (heading % 90) / 90  # Uçuş yönü faktörü
+    
+    progress = (distance_from_equator + distance_from_prime_meridian + heading_factor) / 3
+    return min(round(progress * 100, 2), 100)  # 100'den büyük olmamasını sağla
 
 if __name__ == "__main__":
     app.run(debug=True)

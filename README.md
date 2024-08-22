@@ -17,6 +17,11 @@ Flight-Radar is a multilingual web application that tracks and displays real-tim
 - Audio notification for new detected flights
 - Dark/Light mode toggle
 - Responsive design for various devices
+- Multilingual Progress Bar: Added a progress bar for each flight in the table, showing estimated flight progress
+- Dynamic Language Updates: The interface now updates dynamically when changing the language, including the new progress bar labels
+- Enhanced Flight Information: The flight information popup now displays all details in the selected language
+- Improved Radar Interaction: The radar display now provides more accurate and responsive flight point selection
+- Optimized Performance: Improved the overall performance of the application, especially for handling multiple flights
 
 ## Installation
 

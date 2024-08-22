@@ -14,6 +14,7 @@ const translations = {
         thLatitude: "Latitude",
         thLongitude: "Longitude",
         flightCountLabel: "Total flights found:",
+        thProgress: "Progress",
     },
     ru: {
         mainTitle: "Многоязычный трекер полетов",
@@ -29,6 +30,7 @@ const translations = {
         thLatitude: "Широта",
         thLongitude: "Долгота",
         flightCountLabel: "Всего найдено рейсов:",
+        thProgress: "Прогресс",
     },
     de: {
         mainTitle: "Mehrsprachiger Flugverfolger",
@@ -44,6 +46,7 @@ const translations = {
         thLatitude: "Breite",
         thLongitude: "Länge",
         flightCountLabel: "Insgesamt gefundene Flüge:",
+        thProgress: "Fortschritt",
     },
     tr: {
         mainTitle: "Çok Dilli Uçuş Takip",
@@ -59,6 +62,7 @@ const translations = {
         thLatitude: "Enlem",
         thLongitude: "Boylam",
         flightCountLabel: "Toplam bulunan uçuş:",
+        thProgress: "İlerleme",
     },
     es: {
         mainTitle: "Rastreador de vuelos multilingüe",
@@ -74,6 +78,7 @@ const translations = {
         thLatitude: "Latitud",
         thLongitude: "Longitud",
         flightCountLabel: "Total de vuelos encontrados:",
+        thProgress: "Progreso",
     },
     fr: {
         mainTitle: "Suivi de vol multilingue",
@@ -89,6 +94,7 @@ const translations = {
         thLatitude: "Latitude",
         thLongitude: "Longitude",
         flightCountLabel: "Total des vols trouvés:",
+        thProgress: "Progrès",
     },
 };
 // const translations = { ... } // Bu kısmı önceki versiyondan kopyalayın
@@ -116,6 +122,7 @@ function updateLanguage(lang) {
     document.getElementById("thDirection").textContent = translations[lang].thDirection;
     document.getElementById("thLatitude").textContent = translations[lang].thLatitude;
     document.getElementById("thLongitude").textContent = translations[lang].thLongitude;
+    document.getElementById("thProgress").textContent = translations[lang].thProgress;
     
     updateFlightCount(lang);
 }
@@ -270,6 +277,7 @@ function handleRadarClick(event) {
 }
 
 function showFlightInfo(flight) {
+    const lang = document.getElementById("languageSelect").value;
     // Uçuş bilgilerini göstermek için bir popup oluştur
     const popup = document.createElement('div');
     popup.className = 'fixed z-10 inset-0 overflow-y-auto';
@@ -282,17 +290,17 @@ function showFlightInfo(flight) {
             <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                        Flight Information
+                        ${translations[lang].thCallsign}: ${flight.callsign}
                     </h3>
                     <div class="mt-2">
                         <p class="text-sm text-gray-500">
-                            Callsign: ${flight.callsign}<br>
-                            Country: ${flight.origin_country}<br>
-                            Altitude: ${flight.altitude}<br>
-                            Speed: ${flight.velocity}<br>
-                            Direction: ${flight.true_track}<br>
-                            Latitude: ${flight.latitude}<br>
-                            Longitude: ${flight.longitude}
+                            ${translations[lang].thCountry}: ${flight.origin_country}<br>
+                            ${translations[lang].thAltitude}: ${flight.altitude}<br>
+                            ${translations[lang].thSpeed}: ${flight.velocity}<br>
+                            ${translations[lang].thDirection}: ${flight.true_track}<br>
+                            ${translations[lang].thLatitude}: ${flight.latitude}<br>
+                            ${translations[lang].thLongitude}: ${flight.longitude}<br>
+                            ${translations[lang].thProgress}: ${flight.progress}%
                         </p>
                     </div>
                 </div>
@@ -339,6 +347,12 @@ function updateFlightTable(flights) {
                 <td>${flight.true_track}</td>
                 <td>${flight.latitude}</td>
                 <td>${flight.longitude}</td>
+                <td>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${flight.progress}%"></div>
+                    </div>
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-300">${flight.progress}%</span>
+                </td>
             </tr>
         `;
         tableBody.innerHTML += row;
