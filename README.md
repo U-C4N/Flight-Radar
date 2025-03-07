@@ -10,7 +10,9 @@ Flight-Radar is a multilingual web application that tracks and displays real-tim
 - Multilingual support (English, Russian, German, Turkish, Spanish, French)
 - Automatic location detection for nearby flight information
 - Adjustable search radius
-- Interactive radar display with clickable flight points
+- Enhanced radar display with animated sweep and interactive aircraft visualization
+- Visual indicators for flight speed and altitude
+- Modern UI design with responsive stat cards
 - Detailed flight information popup on radar click
 - Interactive table displaying flight details
 - Download flight data as JPG
@@ -22,6 +24,16 @@ Flight-Radar is a multilingual web application that tracks and displays real-tim
 - Enhanced Flight Information: The flight information popup now displays all details in the selected language
 - Improved Radar Interaction: The radar display now provides more accurate and responsive flight point selection
 - Optimized Performance: Improved the overall performance of the application, especially for handling multiple flights
+
+## Recent Updates
+
+- **Enhanced Radar Visualization**: Completely redesigned radar with animated sweep line, cardinal directions, concentric circles, and color-coded aircraft based on altitude
+- **Fast Flight Indicators**: Added lightning emoji (⚡) next to flights with speeds over 800 km/h for quick visual identification
+- **Improved Stat Cards**: Redesigned the UI of the stat cards with icons, better spacing, and visual progress bar for scan range
+- **Full Language Support**: Fixed language inconsistencies throughout the application for a seamless multilingual experience
+- **Visual Aircraft Trails**: Added speed trails behind fast-moving aircraft in the radar visualization
+- **Direction Indicators**: Aircraft on radar now show their actual heading direction
+- **Dynamic Aircraft Selection**: Enhanced aircraft selection with visual highlighting and detailed information display
 
 ## Installation
 
@@ -60,12 +72,7 @@ Follow these steps to run the project on your local machine:
 5. Click the "Refresh Flights" button to update the flight data.
 6. Use the "Download Table as JPG" button to save the current flight data as an image.
 7. Toggle between dark and light modes using the theme switch.
-
-## New Features
-
-- **Interactive Radar**: The radar now displays clickable points representing flights.
-- **Flight Information Popup**: Clicking on a flight point in the radar opens a popup with detailed flight information.
-- **Dynamic Language Updates**: The interface, including table headers and flight count, now updates dynamically when changing the language.
+8. Look for the lightning emoji (⚡) next to speeds to identify very fast aircraft (over 800 km/h).
 
 ## Acknowledgments
 

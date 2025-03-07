@@ -10,32 +10,40 @@ def index():
 
 @app.route("/get_flights", methods=["POST"])
 def get_flights():
-    lat = float(request.json["lat"])
-    lon = float(request.json["lon"])
-    radius = float(request.json["radius"])
-    
-    url = f"https://opensky-network.org/api/states/all?lamin={lat-1}&lomin={lon-1}&lamax={lat+1}&lomax={lon+1}"
-    response = requests.get(url)
-    data = response.json()
-    
-    flight_data = []
-    if data["states"]:
-        for state in data["states"]:
-            flight_lat, flight_lon = state[6], state[5]
-            distance = calculate_distance(lat, lon, flight_lat, flight_lon)
-            if distance <= radius:
-                flight_data.append({
-                    "icao24": state[0],
-                    "callsign": state[1].strip() if state[1] else "N/A",
-                    "origin_country": state[2],
-                    "altitude": f"{state[7]}m" if state[7] else "N/A",
-                    "velocity": f"{round(float(state[9]) * 3.6, 2)} km/h" if state[9] else "N/A",
-                    "true_track": f"{state[10]}°" if state[10] else "N/A",
-                    "latitude": state[6],
-                    "longitude": state[5],
-                    "progress": calculate_progress(state[6], state[5], state[10] if state[10] else 0)
-                })
-    return jsonify(flight_data)
+    try:
+        # Check if request has JSON data
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
+            
+        data = request.get_json()
+        lat = float(data.get("lat", 0))
+        lon = float(data.get("lon", 0))
+        radius = float(data.get("radius", 100))
+        
+        url = f"https://opensky-network.org/api/states/all?lamin={lat-1}&lomin={lon-1}&lamax={lat+1}&lomax={lon+1}"
+        response = requests.get(url)
+        data = response.json()
+        
+        flight_data = []
+        if data["states"]:
+            for state in data["states"]:
+                flight_lat, flight_lon = state[6], state[5]
+                distance = calculate_distance(lat, lon, flight_lat, flight_lon)
+                if distance <= radius:
+                    flight_data.append({
+                        "icao24": state[0],
+                        "callsign": state[1].strip() if state[1] else "N/A",
+                        "origin_country": state[2],
+                        "altitude": f"{state[7]}m" if state[7] else "N/A",
+                        "velocity": f"{round(float(state[9]) * 3.6, 2)} km/h" if state[9] else "N/A",
+                        "true_track": f"{state[10]}°" if state[10] else "N/A",
+                        "latitude": state[6],
+                        "longitude": state[5],
+                        "progress": calculate_progress(state[6], state[5], state[10] if state[10] else 0)
+                    })
+        return jsonify(flight_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def calculate_distance(lat1, lon1, lat2, lon2):
     R = 6371
