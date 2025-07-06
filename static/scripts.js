@@ -246,20 +246,17 @@ const translations = {
     },
 };
 
-// const translations = { ... } // Bu kısmı önceki versiyondan kopyalayın
-
 let currentLat, currentLon;
 const radiusSlider = document.getElementById("radiusSlider");
 const radiusValue = document.getElementById("radiusValue");
 const canvas = document.getElementById('radarCanvas');
 const ctx = canvas.getContext('2d');
-let currentFlights = []; // Mevcut uçuşları saklayacak global değişken
+let currentFlights = [];
 let selectedAircraft = null;
 
 function updateLanguage(lang) {
     const t = translations[lang] || translations.en;
     
-    // Ana başlık ve etiketleri güncelle
     document.getElementById('mainTitle').textContent = t.mainTitle;
     document.getElementById('locationLabel').textContent = t.locationLabel;
     document.getElementById('radiusLabel').textContent = t.radiusLabel;
@@ -267,11 +264,9 @@ function updateLanguage(lang) {
     document.getElementById('downloadBtn').querySelector('span').textContent = t.downloadLabel;
     document.getElementById('trackFlightsLabel').textContent = t.trackFlightsLabel;
     
-    // Stat cards labels
     document.getElementById('monitoredFlightsLabel').textContent = t.monitoredFlightsLabel;
     document.getElementById('scanRangeLabel').textContent = t.scanRangeLabel;
     
-    // Tablo başlıklarını güncelle
     document.getElementById('thCallsign').textContent = t.thCallsign;
     document.getElementById('thCountry').textContent = t.thCountry;
     document.getElementById('thAltitude').textContent = t.thAltitude;
@@ -281,20 +276,17 @@ function updateLanguage(lang) {
     document.getElementById('thLongitude').textContent = t.thLongitude;
     document.getElementById('thProgress').textContent = t.thProgress;
     
-    // Mesafe bilgisi başlığını güncelle
     const distanceInfoTitle = document.getElementById('distanceInfoTitle');
     if (distanceInfoTitle) {
         distanceInfoTitle.textContent = t.distanceInfo || 'Distance Information';
     }
     
-    // Mesafe bilgisini güncelle
     if (selectedAircraft) {
         updateDistanceInformation(selectedAircraft, currentFlights);
     } else {
         clearDistanceInformation();
     }
     
-    // Update flight count label with translation
     updateFlightCount(lang);
 }
 
@@ -302,15 +294,13 @@ function updateFlightCount(lang) {
     const flightCount = document.querySelector("#flightTable tbody").childElementCount;
     document.getElementById("flightCount").textContent = flightCount.toString();
     
-    // Update the detailed flight count label
     const flightCountLabel = document.getElementById("flightCountLabel");
     if (flightCountLabel) {
-        flightCountLabel.innerHTML = `${translations[lang].flightCountLabel} <span class="text-sky-600 font-bold">${flightCount}</span>`;
+        flightCountLabel.innerHTML = `${translations[lang].flightCountLabel} <span class="text-black font-bold">${flightCount}</span>`;
     }
     
-    // Update the scan range progress bar based on current radius value
     const currentRadius = parseInt(document.getElementById("radiusValue").textContent);
-    const maxRadius = 250; // Maximum range value
+    const maxRadius = 250;
     const progressPercentage = (currentRadius / maxRadius) * 100;
     const scanRangeProgress = document.getElementById("scanRangeProgress");
     if (scanRangeProgress) {
@@ -370,10 +360,8 @@ function initRadar() {
     
     drawRadar();
     
-    // Add radar click event listener
     canvas.addEventListener('click', handleRadarClick);
     
-    // Window resize event listener
     window.addEventListener('resize', () => {
         canvas.width = container.clientWidth;
         canvas.height = container.clientHeight;
@@ -395,85 +383,111 @@ function drawRadar() {
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
     
-    // Draw radar background with gradient
-    const bgGradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-    bgGradient.addColorStop(0, 'rgba(13, 71, 161, 0.1)');
-    bgGradient.addColorStop(0.5, 'rgba(25, 118, 210, 0.05)');
-    bgGradient.addColorStop(1, 'rgba(41, 182, 246, 0.02)');
+    // Simple white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
     
-    ctx.fillStyle = bgGradient;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-    ctx.fill();
+    // Get current radius value for distance calculations
+    const currentRadius = parseInt(document.getElementById("radiusValue")?.textContent || "100");
     
-    // Draw concentric circles
+    // Draw concentric circles with distance labels
     for (let i = 1; i <= 4; i++) {
+        const ringRadius = radius * (i / 4);
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius * (i / 4), 0, Math.PI * 2);
-        ctx.strokeStyle = i % 2 === 0 ? 'rgba(3, 169, 244, 0.4)' : 'rgba(3, 169, 244, 0.2)';
-        ctx.lineWidth = i % 2 === 0 ? 1.5 : 0.8;
-        ctx.setLineDash(i % 2 === 0 ? [] : [5, 5]);
+        ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = i === 4 ? 2 : 1;
+        ctx.setLineDash([]);
         ctx.stroke();
+        
+        // Add distance labels on the rings
+        const distance = Math.round((currentRadius / 4) * i);
+        ctx.font = '10px Inter, sans-serif';
+        ctx.fillStyle = '#666666';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Place distance label at the top of each ring
+        ctx.fillText(`${distance}km`, centerX, centerY - ringRadius + 10);
     }
     
-    // Draw coordinate lines (N, S, E, W)
+    // Draw coordinate lines (N, S, E, W) - enhanced with better visibility
     ctx.beginPath();
-    // Vertical line
     ctx.moveTo(centerX, centerY - radius);
     ctx.lineTo(centerX, centerY + radius);
-    // Horizontal line
     ctx.moveTo(centerX - radius, centerY);
     ctx.lineTo(centerX + radius, centerY);
-    ctx.strokeStyle = 'rgba(3, 169, 244, 0.3)';
+    ctx.strokeStyle = '#000000';
     ctx.lineWidth = 1;
     ctx.setLineDash([]);
     ctx.stroke();
     
-    // Add cardinal direction labels
-    ctx.font = '14px Rajdhani, sans-serif';
-    ctx.fillStyle = 'rgba(3, 169, 244, 0.9)';
+    // Add diagonal reference lines for better orientation
+    ctx.beginPath();
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = '#cccccc';
+    ctx.lineWidth = 1;
+    // NE-SW diagonal
+    const diagOffset = radius * 0.707; // cos(45°) = sin(45°) ≈ 0.707
+    ctx.moveTo(centerX + diagOffset, centerY - diagOffset);
+    ctx.lineTo(centerX - diagOffset, centerY + diagOffset);
+    // NW-SE diagonal
+    ctx.moveTo(centerX - diagOffset, centerY - diagOffset);
+    ctx.lineTo(centerX + diagOffset, centerY + diagOffset);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Add cardinal direction labels with better positioning
+    ctx.font = '14px Inter, sans-serif';
+    ctx.fillStyle = '#000000';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // North
     ctx.fillText('N', centerX, centerY - radius + 15);
-    // South
     ctx.fillText('S', centerX, centerY + radius - 15);
-    // East
     ctx.fillText('E', centerX + radius - 15, centerY);
-    // West
     ctx.fillText('W', centerX - radius + 15, centerY);
     
-    // Draw sweep line (radar animation)
+    // Add intermediate directions
+    ctx.font = '10px Inter, sans-serif';
+    ctx.fillStyle = '#666666';
+    const offset45 = radius * 0.8;
+    ctx.fillText('NE', centerX + offset45 * 0.707, centerY - offset45 * 0.707);
+    ctx.fillText('NW', centerX - offset45 * 0.707, centerY - offset45 * 0.707);
+    ctx.fillText('SE', centerX + offset45 * 0.707, centerY + offset45 * 0.707);
+    ctx.fillText('SW', centerX - offset45 * 0.707, centerY + offset45 * 0.707);
+    
+    // Draw enhanced sweep line with trail effect
     const now = Date.now();
-    const angle = (now / 2000) % (Math.PI * 2); // Full rotation every 2 seconds
+    const angle = (now / 3000) % (Math.PI * 2); // Slower sweep for better visibility
     
-    const gradientLine = ctx.createLinearGradient(centerX, centerY, 
-        centerX + Math.cos(angle) * radius, 
-        centerY + Math.sin(angle) * radius);
-    gradientLine.addColorStop(0, 'rgba(0, 230, 118, 0.8)');
-    gradientLine.addColorStop(1, 'rgba(0, 230, 118, 0)');
-    
+    // Main sweep line
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
     ctx.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
-    ctx.strokeStyle = gradientLine;
+    ctx.strokeStyle = '#000000';
     ctx.lineWidth = 2;
     ctx.stroke();
     
-    // Draw glow at the end of the sweep line
+    // Add a subtle sweep area behind the line
     ctx.beginPath();
-    ctx.arc(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius, 3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 230, 118, 0.8)';
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, angle - 0.3, angle, false);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fill();
     
-    // Add center point
+    // Draw center point with better visibility
     ctx.beginPath();
-    ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(3, 169, 244, 0.8)';
+    ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#000000';
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 2, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffffff';
     ctx.fill();
     
-    // Continuous animation
+    // Continue animation
     if (currentFlights.length > 0) {
         updateRadarPoints(currentFlights);
     } else {
@@ -490,93 +504,76 @@ function updateRadarPoints(flights) {
     const centerY = height / 2;
     const maxRadius = Math.min(width, height) / 2 - 10;
     
-    // Keep a reference to selected aircraft
     const selectedId = selectedAircraft ? selectedAircraft.icao24 : null;
     
-    // Clear and redraw the radar base
     drawRadar();
     
-    // Scale factor and radius value from slider
     const radiusValue = parseInt(document.getElementById("radiusValue").textContent);
-    const radarRadius = radiusValue; // km
+    const radarRadius = radiusValue;
     
-    // Get current user position
     const userLat = currentLat || 0;
     const userLon = currentLon || 0;
     
-    // Draw flights on radar
     flights.forEach(flight => {
-        // Calculate distance in km
         const distance = calculateDistance(userLat, userLon, flight.latitude, flight.longitude);
         
-        // Skip if beyond radar range
         if (distance > radarRadius) return;
         
-        // Calculate bearing/angle
         const bearing = calculateBearing(userLat, userLon, flight.latitude, flight.longitude);
         
-        // Convert to radar coordinates
-        const normalizedDistance = distance / radarRadius; // 0 to 1
+        const normalizedDistance = distance / radarRadius;
         const pointRadius = normalizedDistance * maxRadius;
-        const angleRad = (90 - bearing) * Math.PI / 180; // Convert bearing to radians, adjust for radar display
+        const angleRad = (90 - bearing) * Math.PI / 180;
         
         const x = centerX + pointRadius * Math.cos(angleRad);
         const y = centerY - pointRadius * Math.sin(angleRad);
         
-        // Check if it's the selected aircraft
         const isSelected = flight.icao24 === selectedId;
         
-        // Draw the flight on radar
         drawAircraftPoint(ctx, flight, centerX, centerY, maxRadius, radarRadius, isSelected);
     });
     
-    // Continue animation
     requestAnimationFrame(() => updateRadarPoints(flights));
 }
 
 function drawAircraftPoint(ctx, flight, centerX, centerY, maxRadius, radarRadius, isSelected = false) {
-    // Get coordinates
     const userLat = currentLat || 0;
     const userLon = currentLon || 0;
     
-    // Calculate distance and bearing
     const distance = calculateDistance(userLat, userLon, flight.latitude, flight.longitude);
     const bearing = calculateBearing(userLat, userLon, flight.latitude, flight.longitude);
     
-    // Calculate position on radar
-    const normalizedDistance = distance / radarRadius; // 0 to 1
+    const normalizedDistance = distance / radarRadius;
     const pointRadius = normalizedDistance * maxRadius;
     const angleRad = (90 - bearing) * Math.PI / 180;
     
     const x = centerX + pointRadius * Math.cos(angleRad);
     const y = centerY - pointRadius * Math.sin(angleRad);
     
-    // Determine color based on altitude
-    let color;
-    if (flight.altitude === "N/A") {
-        color = 'rgba(200, 200, 200, 0.8)'; // Gray for unknown altitude
-    } else {
+    // Simple black and white coloring based on altitude
+    let color = '#000000'; // Default black
+    if (flight.altitude !== "N/A") {
         const altitude = parseFloat(flight.altitude);
-        if (altitude < 3000) color = 'rgba(46, 204, 113, 0.9)'; // Green for low altitude
-        else if (altitude < 8000) color = 'rgba(241, 196, 15, 0.9)'; // Yellow for medium altitude
-        else if (altitude < 12000) color = 'rgba(230, 126, 34, 0.9)'; // Orange for high altitude
-        else color = 'rgba(231, 76, 60, 0.9)'; // Red for very high altitude
+        if (altitude < 3000) color = '#666666'; // Dark gray for low
+        else if (altitude < 8000) color = '#333333'; // Medium gray
+        else color = '#000000'; // Black for high
+    } else {
+        color = '#999999'; // Light gray for unknown
     }
     
-    // Draw the flight marker
     ctx.save();
     
-    // Draw direction indicator (aircraft heading)
+    // Draw aircraft marker
     if (flight.true_track && flight.true_track !== "N/A") {
         const heading = parseFloat(flight.true_track);
         const headingRad = (90 - heading) * Math.PI / 180;
         
         ctx.translate(x, y);
-        ctx.rotate(-headingRad); // Negative because canvas Y-axis is inverted
+        ctx.rotate(-headingRad);
         
-        // Draw triangle pointing in aircraft direction
         const size = isSelected ? 12 : 8;
         
+        // Simple triangle
         ctx.beginPath();
         ctx.moveTo(0, -size);
         ctx.lineTo(-size/2, size/2);
@@ -587,78 +584,45 @@ function drawAircraftPoint(ctx, flight, centerX, centerY, maxRadius, radarRadius
         ctx.fill();
         
         if (isSelected) {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Add pulsing effect for selected aircraft
-            const pulseSize = 16 + Math.sin(Date.now() / 200) * 4;
+            // Simple selection indicator
+            const pulseSize = 16;
             ctx.beginPath();
             ctx.arc(0, 0, pulseSize, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
             ctx.stroke();
         }
     } else {
-        // Fallback to circle if no heading data
+        // Simple circle if no heading
         ctx.beginPath();
         ctx.arc(x, y, isSelected ? 8 : 5, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
         
         if (isSelected) {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.strokeStyle = '#000000';
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Add pulsing effect for selected aircraft
-            const pulseSize = 12 + Math.sin(Date.now() / 200) * 3;
+            const pulseSize = 12;
             ctx.beginPath();
             ctx.arc(x, y, pulseSize, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-        }
-    }
-    
-    // Add velocity-based trail effect for high-speed aircraft
-    if (flight.velocity && flight.velocity !== "N/A") {
-        const velocity = parseFloat(flight.velocity);
-        if (velocity > 700) {
-            // Draw speed trail
-            ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
-            
-            const trailLength = Math.min(20, velocity / 40);
-            const trailAngle = (bearing + 180) % 360; // Opposite direction of movement
-            const trailRad = (90 - trailAngle) * Math.PI / 180;
-            
-            const gradient = ctx.createLinearGradient(
-                x, y,
-                x + Math.cos(trailRad) * trailLength,
-                y - Math.sin(trailRad) * trailLength
-            );
-            
-            gradient.addColorStop(0, color);
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-            
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(
-                x + Math.cos(trailRad) * trailLength, 
-                y - Math.sin(trailRad) * trailLength
-            );
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 1;
             ctx.stroke();
         }
     }
     
     ctx.restore();
     
-    // Add callsign label for selected aircraft
+    // Add label for selected aircraft
     if (isSelected) {
-        ctx.font = 'bold 12px Rajdhani, sans-serif';
-        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.fillStyle = '#000000';
         ctx.textAlign = 'center';
         ctx.fillText(flight.callsign || flight.icao24, x, y - 20);
     }
@@ -701,13 +665,13 @@ function updateFlightTable(flights) {
     
     flights.forEach(flight => {
         const row = table.insertRow();
-        row.className = "flight-row hover:bg-slate-700 transition-all cursor-pointer border-b border-slate-700 text-slate-200";
+        row.className = "flight-row hover:bg-gray-100 transition-all cursor-pointer";
         row.setAttribute("data-icao", flight.icao24);
         
         // ICAO24
         const icaoCell = row.insertCell();
         icaoCell.textContent = flight.icao24;
-        icaoCell.className = "px-4 py-3 font-mono text-xs text-sky-400";
+        icaoCell.className = "px-4 py-3 font-mono text-xs";
         
         // Callsign
         const callsignCell = row.insertCell();
@@ -719,44 +683,15 @@ function updateFlightTable(flights) {
         countryCell.textContent = flight.origin_country;
         countryCell.className = "px-4 py-3";
         
-        // Altitude
+        // Altitude - simple styling
         const altitudeCell = row.insertCell();
         altitudeCell.textContent = flight.altitude;
-        let altitudeClass = "px-4 py-3";
-        if (flight.altitude !== "N/A") {
-            const altitude = parseFloat(flight.altitude);
-            if (altitude < 3000) altitudeClass += " text-green-400";
-            else if (altitude < 8000) altitudeClass += " text-yellow-400";
-            else if (altitude < 12000) altitudeClass += " text-orange-400";
-            else altitudeClass += " text-red-400";
-        }
-        altitudeCell.className = altitudeClass;
+        altitudeCell.className = "px-4 py-3";
         
-        // Velocity
+        // Velocity - simple styling
         const velocityCell = row.insertCell();
-        let velocityClass = "px-4 py-3";
-        if (flight.velocity !== "N/A") {
-            const velocity = parseFloat(flight.velocity);
-            if (velocity < 400) {
-                velocityCell.textContent = flight.velocity;
-                velocityClass += " text-blue-400";
-            }
-            else if (velocity < 700) {
-                velocityCell.textContent = flight.velocity;
-                velocityClass += " text-green-400";
-            }
-            else if (velocity < 900) {
-                velocityCell.textContent = flight.velocity;
-                velocityClass += " text-yellow-400";
-            }
-            else {
-                velocityCell.innerHTML = `${flight.velocity} <span class="inline-block ml-1">⚡</span>`;
-                velocityClass += " text-red-400";
-            }
-        } else {
-            velocityCell.textContent = flight.velocity;
-        }
-        velocityCell.className = velocityClass;
+        velocityCell.textContent = flight.velocity;
+        velocityCell.className = "px-4 py-3";
         
         // True Track
         const trackCell = row.insertCell();
@@ -773,24 +708,18 @@ function updateFlightTable(flights) {
         lonCell.textContent = flight.longitude.toFixed(4);
         lonCell.className = "px-4 py-3 font-mono text-xs";
         
-        // Progress
+        // Progress - simple black progress bar
         const progressCell = row.insertCell();
         const progressBarHtml = `
             <div class="flex items-center">
-                <div class="w-full bg-slate-700 rounded-full h-2 mr-2">
-                    <div class="bg-gradient-to-r from-sky-500 to-blue-600 h-2 rounded-full" style="width: ${flight.progress}%"></div>
+                <div class="w-full bg-gray-200 h-2 mr-2">
+                    <div class="bg-black h-2" style="width: ${flight.progress}%"></div>
                 </div>
-                <span class="text-xs text-sky-400">${flight.progress}%</span>
+                <span class="text-xs">${flight.progress}%</span>
             </div>
         `;
         progressCell.innerHTML = progressBarHtml;
         progressCell.className = "px-4 py-3";
-        
-        // Add special flight highlight if needed
-        if (flight.callsign && flight.callsign.includes("UAE")) {
-            row.classList.add("special-flight");
-            document.getElementById("specialFlightAlert").classList.remove("hidden");
-        }
         
         // Add click handler
         row.addEventListener('click', function() {
@@ -800,7 +729,7 @@ function updateFlightTable(flights) {
 }
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Dünya'nın yarıçapı (km)
+    const R = 6371;
     const dLat = deg2rad(lat2 - lat1);
     const dLon = deg2rad(lon2 - lon1);
     const a = 
@@ -823,7 +752,6 @@ function deg2rad(deg) {
     return deg * (Math.PI/180);
 }
 
-// Handle radar click to select aircraft
 function handleRadarClick(event) {
     const rect = canvas.getBoundingClientRect();
     const clickX = event.clientX - rect.left;
@@ -834,13 +762,12 @@ function handleRadarClick(event) {
     const maxRadius = Math.min(canvas.width, canvas.height) / 2 - 10;
     const radiusValue = parseInt(document.getElementById("radiusValue").textContent);
     
-    // Find clicked aircraft
     let closestAircraft = null;
-    let closestDistance = 20; // Maximum detection radius in pixels
+    let closestDistance = 20;
     
     currentFlights.forEach(flight => {
         const distance = calculateDistance(currentLat, currentLon, flight.latitude, flight.longitude);
-        if (distance > radiusValue) return; // Skip if beyond radar range
+        if (distance > radiusValue) return;
         
         const bearing = calculateBearing(currentLat, currentLon, flight.latitude, flight.longitude);
         const normalizedDistance = distance / radiusValue;
@@ -850,7 +777,6 @@ function handleRadarClick(event) {
         const x = centerX + pointRadius * Math.cos(angleRad);
         const y = centerY - pointRadius * Math.sin(angleRad);
         
-        // Calculate distance from click to aircraft point
         const dx = clickX - x;
         const dy = clickY - y;
         const clickDistance = Math.sqrt(dx * dx + dy * dy);
@@ -862,19 +788,15 @@ function handleRadarClick(event) {
     });
     
     if (closestAircraft) {
-        // Set as selected aircraft
         selectedAircraft = closestAircraft;
         
-        // Show flight info if there's a display function
         if (typeof showFlightInfo === 'function') {
             showFlightInfo(closestAircraft);
         }
     } else {
-        // Deselect if clicking on empty space
         selectedAircraft = null;
     }
     
-    // Redraw radar with selection
     if (currentFlights.length > 0) {
         updateRadarPoints(currentFlights);
     }
@@ -885,7 +807,6 @@ window.addEventListener('load', () => {
     initRadar();
     getLocation();
     
-    // Initialize the scan range progress bar
     const initialRadius = parseInt(document.getElementById("radiusValue").textContent);
     const maxRadius = 250;
     const progressPercentage = (initialRadius / maxRadius) * 100;
@@ -894,7 +815,7 @@ window.addEventListener('load', () => {
         scanRangeProgress.style.width = `${progressPercentage}%`;
     }
     
-    updateLanguage("en"); // Set default language to English
+    updateLanguage("en");
 });
 
 window.addEventListener('resize', initRadar);
@@ -921,33 +842,24 @@ document.getElementById("downloadBtn").addEventListener("click", function () {
 });
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Initialize location and radar
     getLocation();
     initRadar();
     
-    // Set initial scanRange value
     document.getElementById("scanRange").textContent = document.getElementById("radiusSlider").value;
     
-    // Modal functionality
     const flightInfoModal = document.getElementById("flightInfoModal");
     const closeModalButton = document.getElementById("closeModal");
     
     if (closeModalButton) {
         closeModalButton.addEventListener("click", function() {
-            flightInfoModal.classList.add("animate__fadeOut");
-            setTimeout(() => {
-                flightInfoModal.classList.remove("animate__fadeOut");
-                flightInfoModal.classList.add("hidden");
-            }, 300);
+            flightInfoModal.classList.add("hidden");
         });
     }
     
-    // Language selector
     document.getElementById("languageSelect").addEventListener("change", function() {
         updateLanguage(this.value);
     });
     
-    // Download button
     document.getElementById("downloadBtn").addEventListener("click", function() {
         html2canvas(document.getElementById("flightTable")).then(canvas => {
             const link = document.createElement('a');
@@ -957,7 +869,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     });
     
-    // Refresh button
     document.getElementById("refreshBtn").addEventListener("click", function() {
         if (currentLat && currentLon) {
             getFlights(currentLat, currentLon);
@@ -966,80 +877,63 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
     
-    // Track All Flights button
     document.getElementById("trackFlightsBtn").addEventListener("click", function() {
         trackAllFlights();
     });
     
-    // Track Flight button
     document.getElementById("trackFlightBtn").addEventListener("click", function() {
         if (selectedAircraft) {
             trackFlight(selectedAircraft);
         }
     });
     
-    // Initial language update
     updateLanguage(document.getElementById("languageSelect").value);
 });
 
-// Track All Flights function
 function trackAllFlights() {
     if (!currentFlights || currentFlights.length === 0) {
         return;
     }
     
-    // Set up auto-refresh interval if not already set
     if (!window.trackingInterval) {
         window.trackingInterval = setInterval(() => {
             if (currentLat && currentLon) {
                 const radius = parseInt(document.getElementById('radiusSlider').value);
                 getFlights(currentLat, currentLon, radius);
             }
-        }, 30000); // Refresh every 30 seconds
+        }, 30000);
         
-        // Update button text to show tracking is active
         const currentLang = document.getElementById('languageSelect').value;
         const t = translations[currentLang] || translations.en;
         const trackBtn = document.getElementById('trackFlightsBtn').querySelector('span');
         trackBtn.textContent = t.trackingActive || 'Tracking Active';
         
-        // Add active class to button
         document.getElementById('trackFlightsBtn').classList.add('active-tracking');
     } else {
-        // If already tracking, stop tracking
         clearInterval(window.trackingInterval);
         window.trackingInterval = null;
         
-        // Update button text
         const currentLang = document.getElementById('languageSelect').value;
         const t = translations[currentLang] || translations.en;
         const trackBtn = document.getElementById('trackFlightsBtn').querySelector('span');
         trackBtn.textContent = t.trackFlights || 'Track All Flights';
         
-        // Remove active class
         document.getElementById('trackFlightsBtn').classList.remove('active-tracking');
     }
 }
 
-// Track a single flight
 function trackFlight(flight) {
-    // Hide the modal
     document.getElementById('flightInfoModal').classList.add('hidden');
     
-    // Keep the selected aircraft
     selectedAircraft = flight;
     
-    // Update the radar to highlight the selected aircraft
     updateRadarPoints(currentFlights);
     
-    // Update the distance information panel
     updateDistanceInformation(selectedAircraft, currentFlights);
     
-    // Scroll to radar
     document.getElementById('radarContainer').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Show flight info in the modal
 function showFlightInfo(flight) {
     if (!flight) return;
     
@@ -1050,97 +944,87 @@ function showFlightInfo(flight) {
         flight.callsign ? `${flight.callsign} ${t.flightInfo || 'Flight Information'}` : t.unknownFlight || 'Unknown Flight';
     
     const altitude = flight.altitude !== 'N/A' ? parseFloat(flight.altitude) : null;
-    let altitudeClass = '';
     let altitudeLabel = t.unknown || 'Unknown';
     
     if (altitude !== null) {
         if (altitude < 3000) {
-            altitudeClass = 'text-emerald-500';
             altitudeLabel = t.lowAltitude || 'Low Altitude';
         } else if (altitude < 8000) {
-            altitudeClass = 'text-yellow-500';
             altitudeLabel = t.mediumAltitude || 'Medium Altitude';
         } else {
-            altitudeClass = 'text-red-500';
             altitudeLabel = t.highAltitude || 'High Altitude';
         }
     }
     
     const speed = flight.velocity !== 'N/A' ? parseFloat(flight.velocity) : null;
-    let speedClass = '';
     let speedLabel = t.unknown || 'Unknown';
     
     if (speed !== null) {
         if (speed < 400) {
-            speedClass = 'text-blue-500';
             speedLabel = t.lowSpeed || 'Low Speed';
         }
         else if (speed < 700) {
-            speedClass = 'text-yellow-500';
             speedLabel = t.mediumSpeed || 'Medium Speed';
         }
         else if (speed < 900) {
-            speedClass = 'text-orange-500';
             speedLabel = t.highSpeed || 'High Speed';
         }
         else {
-            speedClass = 'text-red-500';
             speedLabel = t.veryHighSpeed || 'Very High Speed';
         }
     }
     
-    // Format the content for the modal
     const content = `
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-slate-500">${t.thCallsign || 'Callsign'}:</span>
+                    <span class="text-gray-500">${t.thCallsign || 'Callsign'}:</span>
                     <span class="font-medium">${flight.callsign || 'N/A'}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">${t.thCountry || 'Country'}:</span>
+                    <span class="text-gray-500">${t.thCountry || 'Country'}:</span>
                     <span class="font-medium">${flight.origin_country || 'N/A'}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">${t.thAltitude || 'Altitude'}:</span>
-                    <span class="font-medium ${altitudeClass}">${flight.altitude || 'N/A'} <small>(${altitudeLabel})</small></span>
+                    <span class="text-gray-500">${t.thAltitude || 'Altitude'}:</span>
+                    <span class="font-medium">${flight.altitude || 'N/A'} <small>(${altitudeLabel})</small></span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">${t.thSpeed || 'Speed'}:</span>
-                    <span class="font-medium ${speedClass}">${flight.velocity || 'N/A'} <small>(${speedLabel})</small></span>
+                    <span class="text-gray-500">${t.thSpeed || 'Speed'}:</span>
+                    <span class="font-medium">${flight.velocity || 'N/A'} <small>(${speedLabel})</small></span>
                 </div>
             </div>
             <div class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-slate-500">${t.thDirection || 'Direction'}:</span>
+                    <span class="text-gray-500">${t.thDirection || 'Direction'}:</span>
                     <span class="font-medium">${flight.true_track || 'N/A'}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">${t.thLatitude || 'Latitude'}:</span>
+                    <span class="text-gray-500">${t.thLatitude || 'Latitude'}:</span>
                     <span class="font-medium">${flight.latitude?.toFixed(4) || 'N/A'}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">${t.thLongitude || 'Longitude'}:</span>
+                    <span class="text-gray-500">${t.thLongitude || 'Longitude'}:</span>
                     <span class="font-medium">${flight.longitude?.toFixed(4) || 'N/A'}</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-slate-500">${t.distance || 'Distance'}:</span>
+                    <span class="text-gray-500">${t.distance || 'Distance'}:</span>
                     <span class="font-medium">${Math.round(flight.distanceFromCenter) || 'N/A'} km</span>
                 </div>
             </div>
         </div>
         <div class="mt-4">
             <div class="flex justify-between items-center">
-                <span class="text-slate-500">${t.progress || 'Progress'}:</span>
+                <span class="text-gray-500">${t.progress || 'Progress'}:</span>
                 <span class="text-sm">${flight.progress}% ${t.completed || 'completed'}</span>
             </div>
             <div class="progress-bar mt-2">
                 <div class="progress-fill" style="width: ${flight.progress}%"></div>
             </div>
         </div>
-        <div class="mt-4 text-slate-500 text-sm italic">
+        <div class="mt-4 text-gray-500 text-sm italic">
             ${t.trackingDev || 'Flight tracking feature is currently under development:'}
-            <strong class="text-sky-600">ICAO24: ${flight.icao24}</strong>
+            <strong class="text-black">ICAO24: ${flight.icao24}</strong>
         </div>
     `;
     
