@@ -640,6 +640,7 @@ function getFlights(lat, lon) {
     )
         .then((response) => {
             const flights = response.data;
+            currentFlights = flights; // Global değişkeni güncelle
             updateFlightTable(flights);
             updateRadarPoints(flights);
             updateFlightCount(document.getElementById("languageSelect").value);
@@ -671,55 +672,55 @@ function updateFlightTable(flights) {
         // ICAO24
         const icaoCell = row.insertCell();
         icaoCell.textContent = flight.icao24;
-        icaoCell.className = "px-4 py-3 font-mono text-xs";
+        icaoCell.className = "px-2 sm:px-3 py-2 font-mono text-xs";
         
         // Callsign
         const callsignCell = row.insertCell();
         callsignCell.textContent = flight.callsign;
-        callsignCell.className = "px-4 py-3 font-medium";
+        callsignCell.className = "px-2 sm:px-3 py-2 font-medium";
         
         // Country
         const countryCell = row.insertCell();
         countryCell.textContent = flight.origin_country;
-        countryCell.className = "px-4 py-3";
+        countryCell.className = "px-2 sm:px-3 py-2";
         
         // Altitude - simple styling
         const altitudeCell = row.insertCell();
         altitudeCell.textContent = flight.altitude;
-        altitudeCell.className = "px-4 py-3";
+        altitudeCell.className = "px-2 sm:px-3 py-2";
         
         // Velocity - simple styling
         const velocityCell = row.insertCell();
         velocityCell.textContent = flight.velocity;
-        velocityCell.className = "px-4 py-3";
+        velocityCell.className = "px-2 sm:px-3 py-2";
         
         // True Track
         const trackCell = row.insertCell();
         trackCell.textContent = flight.true_track;
-        trackCell.className = "px-4 py-3";
+        trackCell.className = "px-2 sm:px-3 py-2";
         
-        // Latitude
+        // Latitude - hidden on mobile
         const latCell = row.insertCell();
         latCell.textContent = flight.latitude.toFixed(4);
-        latCell.className = "px-4 py-3 font-mono text-xs";
+        latCell.className = "px-2 sm:px-3 py-2 font-mono text-xs hidden sm:table-cell";
         
-        // Longitude
+        // Longitude - hidden on mobile
         const lonCell = row.insertCell();
         lonCell.textContent = flight.longitude.toFixed(4);
-        lonCell.className = "px-4 py-3 font-mono text-xs";
+        lonCell.className = "px-2 sm:px-3 py-2 font-mono text-xs hidden sm:table-cell";
         
         // Progress - simple black progress bar
         const progressCell = row.insertCell();
         const progressBarHtml = `
             <div class="flex items-center">
-                <div class="w-full bg-gray-200 h-2 mr-2">
+                <div class="w-full bg-gray-200 h-2 mr-1 sm:mr-2 min-w-[40px]">
                     <div class="bg-black h-2" style="width: ${flight.progress}%"></div>
                 </div>
-                <span class="text-xs">${flight.progress}%</span>
+                <span class="text-xs whitespace-nowrap">${flight.progress}%</span>
             </div>
         `;
         progressCell.innerHTML = progressBarHtml;
-        progressCell.className = "px-4 py-3";
+        progressCell.className = "px-2 sm:px-3 py-2";
         
         // Add click handler
         row.addEventListener('click', function() {
@@ -898,8 +899,7 @@ function trackAllFlights() {
     if (!window.trackingInterval) {
         window.trackingInterval = setInterval(() => {
             if (currentLat && currentLon) {
-                const radius = parseInt(document.getElementById('radiusSlider').value);
-                getFlights(currentLat, currentLon, radius);
+                getFlights(currentLat, currentLon);
             }
         }, 30000);
         

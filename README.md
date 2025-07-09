@@ -1,4 +1,4 @@
-# Flight-Radar
+# Flight-Radar v1.3 ✈️
 
 Flight-Radar is a multilingual web application that tracks and displays real-time flight data using the OpenSky Network API. Built with Python Flask, this application offers an interactive interface for viewing nearby flights with various customization options.
 
@@ -27,6 +27,13 @@ Flight-Radar is a multilingual web application that tracks and displays real-tim
 
 ## Recent Updates
 
+### Version 1.3 🎯
+- **Code Organization**: Separated CSS styles into external `styles.css` file for better maintainability and performance
+- **Project Structure**: Improved file organization with dedicated static files for styles
+- **Performance Enhancement**: CSS file can now be cached separately, improving page load times
+- **Developer Experience**: Cleaner HTML structure with separated concerns
+
+### Previous Updates
 - **Enhanced Radar Visualization**: Completely redesigned radar with animated sweep line, cardinal directions, concentric circles, and color-coded aircraft based on altitude
 - **Fast Flight Indicators**: Added lightning emoji (⚡) next to flights with speeds over 800 km/h for quick visual identification
 - **Improved Stat Cards**: Redesigned the UI of the stat cards with icons, better spacing, and visual progress bar for scan range
@@ -34,6 +41,22 @@ Flight-Radar is a multilingual web application that tracks and displays real-tim
 - **Visual Aircraft Trails**: Added speed trails behind fast-moving aircraft in the radar visualization
 - **Direction Indicators**: Aircraft on radar now show their actual heading direction
 - **Dynamic Aircraft Selection**: Enhanced aircraft selection with visual highlighting and detailed information display
+
+## Project Structure
+
+```
+Flight-Radar/
+├── app.py                 # Main Flask application
+├── requirements.txt       # Python dependencies
+├── LICENSE               # MIT License
+├── README.md            # Project documentation
+├── readme.jpg           # Screenshot
+├── static/
+│   ├── scripts.js       # JavaScript functionality
+│   └── styles.css       # CSS styles (v1.3+)
+└── templates/
+    └── index.html       # Main HTML template
+```
 
 ## Installation
 
